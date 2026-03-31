@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>WifiMedia Invoice | Pro-Rata Edition</title>
+    <title>WifiMedia Invoice | Multi-Service Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -33,7 +33,6 @@
             height: 95vh;
         }
 
-        /* FORM PANEL */
         .form-panel {
             background: white;
             border-radius: 1.25rem;
@@ -55,7 +54,6 @@
         }
 
         .form-group { margin-bottom: 1rem; }
-
         .form-group label {
             display: block;
             font-size: 0.7rem;
@@ -65,7 +63,7 @@
             margin-bottom: 0.4rem;
         }
 
-        .form-group input, .form-group textarea {
+        .form-group input, .form-group textarea, .form-group select {
             width: 100%;
             padding: 0.65rem;
             border: 1px solid #e2e8f0;
@@ -74,7 +72,7 @@
             transition: all 0.2s;
         }
 
-        .form-group input:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: var(--brand-accent);
             box-shadow: 0 0 0 3px rgba(245, 176, 66, 0.15);
@@ -82,23 +80,15 @@
 
         .row-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
-        .prorata-box {
+        .service-box {
             background: #f8fafc;
             padding: 1rem;
             border-radius: 0.75rem;
-            border: 1px dashed #cbd5e1;
+            border: 1px solid #e2e8f0;
             margin-bottom: 1rem;
         }
 
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--brand-dark);
-            cursor: pointer;
-        }
+        .hidden { display: none; }
 
         .actions { margin-top: auto; display: flex; gap: 1rem; padding-top: 1rem; }
 
@@ -126,7 +116,6 @@
             overflow: auto;
             padding: 2rem;
             position: relative;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .a4-container {
@@ -139,7 +128,6 @@
             transform-origin: top center;
         }
 
-        /* INVOICE DESIGN */
         .invoice-wrapper {
             padding: 4rem;
             height: 100%;
@@ -172,7 +160,6 @@
         .inv-details h2 { font-size: 1.5rem; color: #94a3b8; margin-bottom: 0.2rem; }
 
         .grid-addresses { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-bottom: 3rem; }
-
         .address-box h3 {
             font-size: 0.75rem;
             text-transform: uppercase;
@@ -180,11 +167,9 @@
             margin-bottom: 0.75rem;
             letter-spacing: 1px;
         }
-
         .address-box p { font-size: 0.9rem; line-height: 1.6; white-space: pre-line; }
 
         table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-
         th {
             text-align: left;
             padding: 1rem;
@@ -194,11 +179,9 @@
             text-transform: uppercase;
             color: #64748b;
         }
-
         td { padding: 1.5rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: 1rem; }
 
         .total-section { margin-left: auto; width: 320px; margin-top: 1rem; }
-
         .total-row {
             display: flex;
             justify-content: space-between;
@@ -229,7 +212,6 @@
             z-index: 100;
             justify-content: center;
             align-items: center;
-            font-weight: 600;
         }
 
         @media (max-width: 1100px) {
@@ -247,7 +229,7 @@
     <div class="form-panel">
         <div>
             <h2>WifiMedia</h2>
-            <div class="sub">Invoice Editor • Billing Logic</div>
+            <div class="sub">Invoice Editor • Flexible Billing</div>
         </div>
 
         <div class="row-2col">
@@ -262,30 +244,16 @@
         </div>
 
         <div class="form-group">
-            <label>From (Editor Details)</label>
-            <textarea id="fromDetails" rows="3">Victor Pelemer
-ZIP Code: 7016
-Pagadian City, ZDS
-Phone: +639308992049
-E-mail: pelemervictor20@gmail.com</textarea>
+            <label>Service Type</label>
+            <select id="serviceType" onchange="toggleServiceFields()">
+                <option value="video">Video Editing (Monthly/Pro-rata)</option>
+                <option value="thumbnail">Thumbnail Design (Per Unit)</option>
+            </select>
         </div>
 
-        <div class="form-group">
-            <label>Bill To (Client Details)</label>
-            <textarea id="toDetails" rows="3">Andy Yuting Lay
-Address: 5 Harvey place, Cherrybrook
-ZIP Code: 2126
-E-mail: andylay0205@gmail.com
-Phone: +61 451263462
-ABN: 27 713 996 084</textarea>
-        </div>
-
-        <div class="prorata-box">
+        <div id="videoFields" class="service-box">
             <div class="form-group">
-                <label class="checkbox-group">
-                    <input type="checkbox" id="useProrata" checked onchange="renderInvoice()"> 
-                    Enable Pro-Rata Calculation
-                </label>
+                <label><input type="checkbox" id="useProrata" checked onchange="renderInvoice()"> Enable Pro-Rata</label>
             </div>
             <div class="row-2col">
                 <div class="form-group">
@@ -299,66 +267,107 @@ ABN: 27 713 996 084</textarea>
             </div>
         </div>
 
+        <div id="thumbnailFields" class="service-box hidden">
+            <div class="row-2col">
+                <div class="form-group">
+                    <label>Rate per Thumb ($)</label>
+                    <input type="number" id="thumbRate" value="15" oninput="renderInvoice()">
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" id="thumbQty" value="1" oninput="renderInvoice()">
+                </div>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>Project Description</label>
             <input type="text" id="itemDesc" value="YouTube Video Editing Services" oninput="renderInvoice()">
         </div>
 
+        <div class="form-group">
+            <label>Bill To</label>
+            <textarea id="toDetails" rows="3">Andy Yuting Lay
+5 Harvey place, Cherrybrook
+ABN: 27 713 996 084</textarea>
+        </div>
+
         <div class="actions">
-            <button class="btn-refresh" onclick="renderInvoice()">Refresh Preview</button>
-            <button class="btn-save" onclick="saveInvoice()">Save as Image</button>
+            <button class="btn-refresh" onclick="renderInvoice()">Refresh</button>
+            <button class="btn-save" onclick="saveInvoice()">Save PNG</button>
         </div>
     </div>
 
     <div class="preview-panel">
         <div class="a4-container" id="captureArea">
-            <div class="invoice-wrapper" id="invoiceContent">
-                </div>
+            <div class="invoice-wrapper" id="invoiceContent"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // Helper to get total days in a specific month/year
+    function toggleServiceFields() {
+        const type = document.getElementById('serviceType').value;
+        const desc = document.getElementById('itemDesc');
+        
+        if (type === 'video') {
+            document.getElementById('videoFields').classList.remove('hidden');
+            document.getElementById('thumbnailFields').classList.add('hidden');
+            desc.value = "YouTube Video Editing Services";
+        } else {
+            document.getElementById('videoFields').classList.add('hidden');
+            document.getElementById('thumbnailFields').classList.remove('hidden');
+            desc.value = "High-Quality Thumbnail Design";
+        }
+        renderInvoice();
+    }
+
     function getDaysInMonth(date) {
         return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
     }
 
     function renderInvoice() {
-        const issueDateObj = new Date(document.getElementById('issueDate').value);
-        const startDateObj = new Date(document.getElementById('startDate').value);
-        const monthlyRate = parseFloat(document.getElementById('monthlyRate').value) || 0;
-        const isProrated = document.getElementById('useProrata').checked;
+        const type = document.getElementById('serviceType').value;
+        const issueDate = new Date(document.getElementById('issueDate').value);
+        let totalAmount = 0;
+        let subText = "";
 
-        let totalAmount = monthlyRate;
-        let subText = "Full monthly subscription";
-
-        if (isProrated && !isNaN(startDateObj.getTime())) {
-            const daysInMonth = getDaysInMonth(startDateObj);
-            const startDay = startDateObj.getDate();
+        if (type === 'video') {
+            const rate = parseFloat(document.getElementById('monthlyRate').value) || 0;
+            const start = new Date(document.getElementById('startDate').value);
+            const isProrated = document.getElementById('useProrata').checked;
             
-            // Logic: Total days minus start day + 1 (to include the start day itself)
-            const billableDays = (daysInMonth - startDay) + 1;
-            const dailyRate = monthlyRate / daysInMonth;
-            totalAmount = dailyRate * billableDays;
-            
-            subText = `Pro-rated: ${billableDays} of ${daysInMonth} days ($${dailyRate.toFixed(2)}/day)`;
+            if (isProrated && !isNaN(start.getTime())) {
+                const daysInMonth = getDaysInMonth(start);
+                const billableDays = (daysInMonth - start.getDate()) + 1;
+                const dailyRate = rate / daysInMonth;
+                totalAmount = dailyRate * billableDays;
+                subText = `Pro-rated: ${billableDays}/${daysInMonth} days ($${dailyRate.toFixed(2)}/day)`;
+            } else {
+                totalAmount = rate;
+                subText = "Full monthly subscription";
+            }
+        } else {
+            const rate = parseFloat(document.getElementById('thumbRate').value) || 0;
+            const qty = parseInt(document.getElementById('thumbQty').value) || 0;
+            totalAmount = rate * qty;
+            subText = `Quantity: ${qty} units @ $${rate.toFixed(2)} each`;
         }
 
         const data = {
             num: document.getElementById('invoiceNumber').value,
-            date: issueDateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-            from: document.getElementById('fromDetails').value.replace(/\n/g, '<br>'),
+            date: issueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
             to: document.getElementById('toDetails').value.replace(/\n/g, '<br>'),
             desc: document.getElementById('itemDesc').value,
-            total: totalAmount.toFixed(2)
+            total: totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}),
+            badge: type === 'video' ? 'VIDEO EDITING SERVICE' : 'THUMBNAIL DESIGN'
         };
 
         document.getElementById('invoiceContent').innerHTML = `
             <div class="invoice-header">
                 <div class="brand">
                     <h1>WifiMedia</h1>
-                    <div class="video-badge">VIDEO EDITING SERVICE</div>
+                    <div class="video-badge">${data.badge}</div>
                 </div>
                 <div class="inv-details">
                     <h2>INVOICE</h2>
@@ -370,7 +379,7 @@ ABN: 27 713 996 084</textarea>
             <div class="grid-addresses">
                 <div class="address-box">
                     <h3>Issued By</h3>
-                    <p>${data.from}</p>
+                    <p>Victor Pelemer<br>7016 Pagadian City, ZDS<br>pelemervictor20@gmail.com</p>
                 </div>
                 <div class="address-box">
                     <h3>Bill To</h3>
@@ -387,25 +396,19 @@ ABN: 27 713 996 084</textarea>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>
-                            <strong>${data.desc}</strong><br>
-                            <small style="color:#64748b">${subText}</small>
-                        </td>
+                        <td><strong>${data.desc}</strong><br><small style="color:#64748b">${subText}</small></td>
                         <td style="text-align: right; font-weight: 600;">$${data.total}</td>
                     </tr>
                 </tbody>
             </table>
 
             <div class="total-section">
-                <div class="total-row">
-                    <span>Total Due</span>
-                    <span>$${data.total} USD</span>
-                </div>
+                <div class="total-row"><span>Total Due</span><span>$${data.total} USD</span></div>
             </div>
 
             <div class="footer">
                 <div>Payment via Wise (USD)</div>
-                <div>Thank you for choosing WifiMedia!</div>
+                <div>Thank you for your business!</div>
             </div>
         `;
     }
@@ -413,40 +416,25 @@ ABN: 27 713 996 084</textarea>
     async function saveInvoice() {
         const el = document.getElementById('captureArea');
         const loader = document.getElementById('loader');
-        
         loader.style.display = 'flex';
         const originalTransform = el.style.transform;
-        
-        // Reset scale for capture
         el.style.transform = 'none';
         
         try {
-            const canvas = await html2canvas(el, {
-                scale: 3, // High resolution
-                useCORS: true,
-                backgroundColor: '#ffffff'
-            });
-            
+            const canvas = await html2canvas(el, { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
             const link = document.createElement('a');
-            link.download = `WifiMedia_Invoice_${document.getElementById('invoiceNumber').value}.png`;
+            link.download = `WifiMedia_${document.getElementById('invoiceNumber').value}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-        } catch (e) {
-            alert('Export failed. Please try again.');
-        } finally {
+        } catch (e) { alert('Export failed.'); } 
+        finally {
             el.style.transform = originalTransform;
             loader.style.display = 'none';
         }
     }
 
-    // Set default dates on load
-    const today = new Date();
-    document.getElementById('issueDate').valueAsDate = today;
-    
-    // Set default start date to the 16th of this month
-    const defaultStart = new Date(today.getFullYear(), today.getMonth(), 16);
-    document.getElementById('startDate').value = defaultStart.toISOString().split('T')[0];
-
+    document.getElementById('issueDate').valueAsDate = new Date();
+    document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
     renderInvoice();
 </script>
 
