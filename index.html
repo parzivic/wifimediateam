@@ -272,7 +272,7 @@
 
         <div class="form-group">
             <label>Current Conversion Rate (1 USD to AUD)</label>
-            <input type="number" id="exchangeRate" value="1.54" step="0.01" oninput="renderInvoice()">
+            <input type="number" id="exchangeRate" value="1.41" step="0.01" oninput="renderInvoice()">
         </div>
 
         <div class="form-group">
@@ -340,7 +340,7 @@ ABN: 27 713 996 084</textarea>
         const type = document.getElementById('serviceType').value;
         const issueDateInput = document.getElementById('issueDate').value;
         const issueDateObj = issueDateInput ? new Date(issueDateInput) : new Date();
-        const audRate = parseFloat(document.getElementById('exchangeRate').value) || 1.54;
+        const audRate = parseFloat(document.getElementById('exchangeRate').value) || 1.41;
         
         let totalAmount = 0;
         let subText = "";
