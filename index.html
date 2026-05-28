@@ -147,6 +147,7 @@
             border-radius: 99px;
             font-size: 0.75rem;
             font-weight: 700;
+            text-transform: uppercase;
         }
         .inv-details { text-align: right; }
         .inv-details h2 { font-size: 1.5rem; color: #94a3b8; margin-bottom: 0.2rem; }
@@ -271,6 +272,11 @@
         </div>
 
         <div class="form-group">
+            <label>Extra Charges / Bonus (USD)</label>
+            <input type="number" id="extraCharges" value="0" step="0.01" oninput="renderInvoice()">
+        </div>
+
+        <div class="form-group">
             <label>Current Conversion Rate (1 USD to AUD)</label>
             <input type="number" id="exchangeRate" value="1.41" step="0.01" oninput="renderInvoice()">
         </div>
@@ -341,8 +347,9 @@ ABN: 27 713 996 084</textarea>
         const issueDateInput = document.getElementById('issueDate').value;
         const issueDateObj = issueDateInput ? new Date(issueDateInput) : new Date();
         const audRate = parseFloat(document.getElementById('exchangeRate').value) || 1.41;
+        const extraCharges = parseFloat(document.getElementById('extraCharges').value) || 0;
         
-        let totalAmount = 0;
+        let baseAmount = 0;
         let subText = "";
         let serviceBadge = "VIDEO EDITING SERVICE";
 
@@ -351,7 +358,7 @@ ABN: 27 713 996 084</textarea>
             const monthlyRate = parseFloat(document.getElementById('monthlyRate').value) || 0;
             const isProrated = document.getElementById('useProrata').checked;
             
-            totalAmount = monthlyRate;
+            baseAmount = monthlyRate;
             subText = "Full monthly subscription";
 
             if (isProrated && !isNaN(startDateObj.getTime())) {
@@ -359,18 +366,20 @@ ABN: 27 713 996 084</textarea>
                 const startDay = startDateObj.getDate();
                 const billableDays = (daysInMonth - startDay) + 1;
                 const dailyRate = monthlyRate / daysInMonth;
-                totalAmount = dailyRate * billableDays;
+                baseAmount = dailyRate * billableDays;
                 subText = `Pro-rated: ${billableDays} of ${daysInMonth} days ($${dailyRate.toFixed(2)}/day)`;
             }
         } else {
             const thumbRate = parseFloat(document.getElementById('thumbRate').value) || 0;
             const thumbQty = parseInt(document.getElementById('thumbQty').value) || 0;
-            totalAmount = thumbRate * thumbQty;
+            baseAmount = thumbRate * thumbQty;
             subText = `Quantity: ${thumbQty} thumbnails @ $${thumbRate.toFixed(2)} each`;
             serviceBadge = "THUMBNAIL DESIGN SERVICE";
         }
 
-        const totalAUD = (totalAmount * audRate).toFixed(2);
+        // Add extra charges onto the baseline subtotal
+        const finalTotalAmount = baseAmount + extraCharges;
+        const totalAUD = (finalTotalAmount * audRate).toFixed(2);
 
         const data = {
             num: document.getElementById('invoiceNumber').value,
@@ -378,9 +387,33 @@ ABN: 27 713 996 084</textarea>
             from: document.getElementById('fromDetails').value.replace(/\n/g, '<br>'),
             to: document.getElementById('toDetails').value.replace(/\n/g, '<br>'),
             desc: document.getElementById('itemDesc').value,
-            total: totalAmount.toFixed(2),
+            baseTotal: baseAmount.toFixed(2),
+            finalTotal: finalTotalAmount.toFixed(2),
             totalAUD: totalAUD
         };
+
+        // Conditional row generation if extra items are provided
+        let tableRowsHtml = `
+            <tr>
+                <td>
+                    <strong>${data.desc}</strong><br>
+                    <small style="color:#64748b">${subText}</small>
+                </td>
+                <td style="text-align: right; font-weight: 600;">$${data.baseTotal} USD</td>
+            </tr>
+        `;
+
+        if (extraCharges > 0) {
+            tableRowsHtml += `
+                <tr>
+                    <td>
+                        <strong>Additional Service / Extra Add-on</strong><br>
+                        <small style="color:#64748b">Overage fees or project adjustment adjustments</small>
+                    </td>
+                    <td style="text-align: right; font-weight: 600;">$${extraCharges.toFixed(2)} USD</td>
+                </tr>
+            `;
+        }
 
         document.getElementById('invoiceContent').innerHTML = `
             <div class="invoice-header">
@@ -414,13 +447,7 @@ ABN: 27 713 996 084</textarea>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>
-                            <strong>${data.desc}</strong><br>
-                            <small style="color:#64748b">${subText}</small>
-                        </td>
-                        <td style="text-align: right; font-weight: 600;">$${data.total} USD</td>
-                    </tr>
+                    ${tableRowsHtml}
                 </tbody>
             </table>
 
@@ -428,7 +455,7 @@ ABN: 27 713 996 084</textarea>
                 <div class="total-row">
                     <span>Total Due</span>
                     <div style="text-align: right">
-                        <span>$${data.total} USD</span><br>
+                        <span>$${data.finalTotal} USD</span><br>
                         <small style="font-size: 0.8rem; font-weight: 400; opacity: 0.9;">/ $${data.totalAUD} AUD</small>
                     </div>
                 </div>
